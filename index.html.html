@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HERNÍ PORADCE – Najdi svůj ideální herní počítač</title>
+  <meta name="description" content="Česká platforma pro výběr herního PC a notebooku podle rozpočtu, her a výkonu." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: '#080B12',
+            'dark-blue': '#101725',
+            blue: '#008CFF',
+            neon: '#00C8FF',
+            gray: '#A0AEC0',
+          },
+          boxShadow: {
+            neon: '0 0 20px rgba(0, 200, 255, 0.3)',
+            'neon-lg': '0 0 40px rgba(0, 200, 255, 0.4)',
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            float: 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #080B12; }
+    ::-webkit-scrollbar-thumb { background: #008CFF; border-radius: 4px; }
+    .btn-primary {
+      background: linear-gradient(to right, #008CFF, #00C8FF);
+      color: #080B12;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary:hover { box-shadow: 0 0 20px rgba(0, 200, 255, 0.4); transform: scale(1.03); }
+    .btn-secondary {
+      border: 1px solid rgba(0, 200, 255, 0.5);
+      color: #00C8FF;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      background: transparent;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: rgba(0, 200, 255, 0.1); border-color: #00C8FF; }
+    .card {
+      background: rgba(16, 23, 37, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 1rem;
+      transition: all 0.3s;
+    }
+    .card:hover { border-color: rgba(0, 200, 255, 0.3); box-shadow: 0 0 20px rgba(0, 200, 255, 0.15); }
+    .input-field {
+      width: 100%;
+      background: #080B12;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: white;
+      outline: none;
+    }
+    .input-field:focus { border-color: #00C8FF; box-shadow: 0 0 0 1px rgba(0, 200, 255, 0.5); }
+    .section-title {
+      font-size: 1.875rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #fff, #00C8FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    @media (min-width: 768px) { .section-title { font-size: 2.25rem; } }
+  </style>
+</head>
+<body class="bg-dark text-white antialiased min-h-screen">
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.26.2/babel.min.js"></script>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useMemo, useEffect } = React;
+
+    // ========== DATA ==========
+    const products = [
+      { id: 1, name: 'Starter Force GTX', type: 'desktop', used: false, price: 12990, cpu: 'AMD Ryzen 5 5600', gpu: 'NVIDIA GTX 1660 Super', ram: '16 GB DDR4', ssd: '512 GB NVMe', rating: 4.2, image: 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=600&h=400&fit=crop', fps: { Warzone: 70, CS2: 180, PUBG: 90, Fortnite: 120, 'GTA V': 95, Minecraft: 200, 'Kingdom Come: Deliverance II': 55 }, performance: 'stredni', description: 'Solidní vstupní herní sestava pro 1080p. Demonstrační produkt.' },
+      { id: 2, name: 'Budget Blaster RX', type: 'desktop', used: false, price: 9990, cpu: 'Intel Core i5-12400F', gpu: 'AMD Radeon RX 6600', ram: '16 GB DDR4', ssd: '512 GB NVMe', rating: 4.4, image: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=600&h=400&fit=crop', fps: { Warzone: 85, CS2: 220, PUBG: 110, Fortnite: 140, 'GTA V': 110, Minecraft: 240, 'Kingdom Come: Deliverance II': 60 }, performance: 'stredni', description: 'Výborný poměr cena/výkon pro Full HD. Demonstrační produkt.' },
+      { id: 3, name: 'Warrior RTX 4060', type: 'desktop', used: false, price: 18990, cpu: 'AMD Ryzen 5 7600', gpu: 'NVIDIA RTX 4060', ram: '32 GB DDR5', ssd: '1 TB NVMe', rating: 4.6, image: 'https://images.unsplash.com/photo-1625842268584-8f3296236761?w=600&h=400&fit=crop', fps: { Warzone: 120, CS2: 300, PUBG: 150, Fortnite: 200, 'GTA V': 140, Minecraft: 300, 'Kingdom Come: Deliverance II': 80 }, performance: 'vysoky', description: 'Moderní mid-range PC s DLSS. Demonstrační produkt.' },
+      { id: 4, name: 'Elite Beast RTX 4070', type: 'desktop', used: false, price: 27990, cpu: 'AMD Ryzen 7 7700', gpu: 'NVIDIA RTX 4070', ram: '32 GB DDR5', ssd: '1 TB NVMe', rating: 4.8, image: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=600&h=400&fit=crop', fps: { Warzone: 160, CS2: 400, PUBG: 180, Fortnite: 240, 'GTA V': 160, Minecraft: 400, 'Kingdom Come: Deliverance II': 100 }, performance: 'maximalni', description: 'Vysoký výkon pro 1440p. Demonstrační produkt.' },
+      { id: 5, name: 'Ultra Titan RTX 4080', type: 'desktop', used: false, price: 44990, cpu: 'Intel Core i7-14700K', gpu: 'NVIDIA RTX 4080 Super', ram: '64 GB DDR5', ssd: '2 TB NVMe', rating: 4.9, image: 'https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=600&h=400&fit=crop', fps: { Warzone: 200, CS2: 500, PUBG: 220, Fortnite: 300, 'GTA V': 200, Minecraft: 500, 'Kingdom Come: Deliverance II': 130 }, performance: 'maximalni', description: 'Špičkový výkon pro 4K. Demonstrační produkt.' },
+      { id: 6, name: 'Eco Gaming Used', type: 'desktop', used: true, price: 7990, cpu: 'AMD Ryzen 5 3600', gpu: 'NVIDIA GTX 1660', ram: '16 GB DDR4', ssd: '512 GB SSD', rating: 3.9, image: 'https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=600&h=400&fit=crop', fps: { Warzone: 55, CS2: 140, PUBG: 70, Fortnite: 90, 'GTA V': 75, Minecraft: 160, 'Kingdom Come: Deliverance II': 40 }, performance: 'nizky', description: 'Použitý počítač pro začátek. Demonstrační produkt.' },
+      { id: 7, name: 'Laptop Nomad 15', type: 'laptop', used: false, price: 21990, cpu: 'AMD Ryzen 5 7535HS', gpu: 'NVIDIA RTX 4050 Laptop', ram: '16 GB DDR5', ssd: '512 GB NVMe', rating: 4.3, image: 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600&h=400&fit=crop', fps: { Warzone: 70, CS2: 160, PUBG: 85, Fortnite: 110, 'GTA V': 90, Minecraft: 180, 'Kingdom Come: Deliverance II': 50 }, performance: 'stredni', description: 'Kompaktní herní notebook 15". Demonstrační produkt.' },
+      { id: 8, name: 'Laptop Storm 16', type: 'laptop', used: false, price: 32990, cpu: 'Intel Core i7-13650HX', gpu: 'NVIDIA RTX 4060 Laptop', ram: '32 GB DDR5', ssd: '1 TB NVMe', rating: 4.5, image: 'https://images.unsplash.com/photo-1525547717934-aa4804adf0d1?w=600&h=400&fit=crop', fps: { Warzone: 95, CS2: 220, PUBG: 120, Fortnite: 150, 'GTA V': 120, Minecraft: 250, 'Kingdom Come: Deliverance II': 70 }, performance: 'vysoky', description: 'Výkonný 16" notebook. Demonstrační produkt.' },
+      { id: 9, name: 'Laptop Lite RTX', type: 'laptop', used: false, price: 16990, cpu: 'AMD Ryzen 5 6600H', gpu: 'NVIDIA RTX 3050 Laptop', ram: '16 GB DDR5', ssd: '512 GB NVMe', rating: 4.0, image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&h=400&fit=crop', fps: { Warzone: 55, CS2: 130, PUBG: 70, Fortnite: 90, 'GTA V': 75, Minecraft: 150, 'Kingdom Come: Deliverance II': 40 }, performance: 'nizky', description: 'Dostupný herní notebook. Demonstrační produkt.' },
+      { id: 10, name: 'Pro Gamer 1440p', type: 'desktop', used: false, price: 24990, cpu: 'AMD Ryzen 7 5800X3D', gpu: 'AMD Radeon RX 7800 XT', ram: '32 GB DDR4', ssd: '1 TB NVMe', rating: 4.7, image: 'https://images.unsplash.com/photo-1616587894289-86480e533129?w=600&h=400&fit=crop', fps: { Warzone: 140, CS2: 350, PUBG: 160, Fortnite: 210, 'GTA V': 150, Minecraft: 350, 'Kingdom Come: Deliverance II': 90 }, performance: 'vysoky', description: 'Skvělá volba pro 1440p. Demonstrační produkt.' },
+      { id: 11, name: 'Mini ITX Stealth', type: 'desktop', used: false, price: 21990, cpu: 'Intel Core i5-14600KF', gpu: 'NVIDIA RTX 4060 Ti', ram: '32 GB DDR5', ssd: '1 TB NVMe', rating: 4.5, image: 'https://images.unsplash.com/photo-1614624532983-4ce03382d63d?w=600&h=400&fit=crop', fps: { Warzone: 130, CS2: 320, PUBG: 155, Fortnite: 190, 'GTA V': 145, Minecraft: 320, 'Kingdom Come: Deliverance II': 85 }, performance: 'vysoky', description: 'Kompaktní výkonná sestava. Demonstrační produkt.' },
+      { id: 12, name: 'Used High-End Deal', type: 'desktop', used: true, price: 15990, cpu: 'AMD Ryzen 7 5800X', gpu: 'NVIDIA RTX 3070', ram: '32 GB DDR4', ssd: '1 TB NVMe', rating: 4.3, image: 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=600&h=400&fit=crop', fps: { Warzone: 110, CS2: 280, PUBG: 140, Fortnite: 170, 'GTA V': 130, Minecraft: 280, 'Kingdom Come: Deliverance II': 75 }, performance: 'vysoky', description: 'Použitý high-end – skvělá cena. Demonstrační produkt.' },
+    ];
+
+    const articles = [
+      { slug: 'jak-vybrat-herni-pc', title: 'Jak vybrat herní PC?', excerpt: 'Kompletní průvodce pro začátečníky.', category: 'Základy', readTime: '8 min', content: '<p>Výběr herního počítače nemusí být složité. Nejdůležitější jsou tři věci: grafická karta, procesor a operační paměť.</p><h3>1. Grafická karta (GPU)</h3><p>Má největší vliv na výkon ve hrách. Pro Full HD stačí RTX 4060 nebo RX 7600. Pro 1440p doporučujeme RTX 4070 a vyšší.</p><h3>2. Procesor (CPU)</h3><p>Moderní hry využívají 6–8 jader. Ryzen 5 7600 nebo Intel Core i5-14600K jsou skvělé volby.</p><h3>3. Operační paměť (RAM)</h3><p>Minimum je 16 GB. Pro budoucnost doporučujeme 32 GB.</p><h3>4. Úložiště</h3><p>SSD disk je nutnost. Ideálně NVMe SSD o velikosti alespoň 1 TB.</p>' },
+      { slug: 'jak-funguje-graficka-karta', title: 'Jak funguje grafická karta?', excerpt: 'Proč je GPU nejdůležitější součást herního PC.', category: 'Hardware', readTime: '6 min', content: '<p>Grafická karta (GPU) je specializovaný procesor, který počítá obraz na monitoru. Čím výkonnější karta, tím vyšší rozlišení a detaily zvládne.</p><h3>Co znamená FPS?</h3><p>FPS (frames per second) = počet snímků za sekundu. 60 FPS je plynulé, 144+ FPS je ideální pro soutěžní hry.</p><h3>Ray Tracing a DLSS</h3><p>Moderní karty NVIDIA podporují ray tracing a DLSS. AMD má podobnou technologii FSR.</p>' },
+      { slug: 'kolik-ram-potrebuji', title: 'Kolik RAM potřebuji?', excerpt: '16 GB, 32 GB nebo víc?', category: 'Hardware', readTime: '5 min', content: '<p><strong>16 GB</strong> – stačí pro většinu her na střední až vyšší nastavení.</p><p><strong>32 GB</strong> – doporučený standard pro pohodlné hraní a multitasking.</p><p><strong>64 GB</strong> – má smysl hlavně pro tvorbu obsahu.</p>' },
+      { slug: 'intel-vs-amd', title: 'Intel vs. AMD', excerpt: 'Který procesor je lepší pro hraní?', category: 'Porovnání', readTime: '7 min', content: '<p>Obě značky nabízejí výborné procesory pro hraní.</p><h3>AMD Ryzen</h3><p>Často lepší poměr cena/výkon, výborný ve hrách díky 3D V-Cache.</p><h3>Intel Core</h3><p>Velmi silný v jednojádrovém výkonu a produktivitě.</p><p>Pro čisté hraní často vítězí AMD.</p>' },
+      { slug: 'rtx-vs-radeon', title: 'RTX vs. Radeon', excerpt: 'NVIDIA nebo AMD grafická karta?', category: 'Porovnání', readTime: '7 min', content: '<p><strong>NVIDIA RTX</strong> – lepší ray tracing, DLSS, encoder pro streamování.</p><p><strong>AMD Radeon</strong> – často více VRAM za stejné peníze, dobrý poměr cena/výkon.</p>' },
+      { slug: 'jak-zvysit-fps', title: 'Jak zvýšit FPS ve hrách?', excerpt: 'Praktické tipy pro vyšší výkon.', category: 'Optimalizace', readTime: '6 min', content: '<ul><li>Aktualizujte ovladače grafické karty</li><li>Zapněte herní režim ve Windows</li><li>Snižte zbytečné efekty</li><li>Použijte DLSS / FSR / XeSS</li><li>Zavřete programy na pozadí</li><li>Zvažte upgrade RAM na 32 GB</li></ul><p>Největší skok obvykle přinese lepší grafická karta.</p>' },
+    ];
+
+    const NAV = [
+      { id: 'home', label: 'Domů' },
+      { id: 'desktop', label: 'Herní PC' },
+      { id: 'laptop', label: 'Herní notebooky' },
+      { id: 'wizard', label: 'Výběr podle hry' },
+      { id: 'compare', label: 'Porovnání' },
+      { id: 'poradna', label: 'Poradna' },
+      { id: 'ai', label: 'AI Poradce' },
+      { id: 'about', label: 'O nás' },
+    ];
+
+    // ========== ICONS (inline SVG) ==========
+    const Icon = ({ name, size = 20, className = '' }) => {
+      const s = { width: size, height: size, className, fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
+      const icons = {
+        menu: <svg {...s}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
+        x: <svg {...s}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+        gamepad: <svg {...s}><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="2"/></svg>,
+        star: <svg {...s} fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+        cpu: <svg {...s}><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></svg>,
+        monitor: <svg {...s}><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>,
+        ram: <svg {...s}><path d="M6 19v-3"/><path d="M10 19v-3"/><path d="M14 19v-3"/><path d="M18 19v-3"/><rect width="20" height="10" x="2" y="6" rx="2"/><path d="M6 6V4"/><path d="M10 6V4"/><path d="M14 6V4"/><path d="M18 6V4"/></svg>,
+        hdd: <svg {...s}><line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/></svg>,
+        arrowRight: <svg {...s}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>,
+        arrowLeft: <svg {...s}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
+        check: <svg {...s}><path d="M20 6 9 17l-5-5"/></svg>,
+        sparkles: <svg {...s}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
+        zap: <svg {...s}><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>,
+        book: <svg {...s}><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>,
+        clock: <svg {...s}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+        bot: <svg {...s}><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>,
+        user: <svg {...s}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+        send: <svg {...s}><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>,
+        external: <svg {...s}><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>,
+        sliders: <svg {...s}><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg>,
+        target: <svg {...s}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+        users: <svg {...s}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+        trend: <svg {...s}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,
+        compare: <svg {...s}><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>,
+      };
+      return icons[name] || null;
+    };
+
+    // ========== COMPONENTS ==========
+    function ProductCard({ product, onOpen, onCompareToggle, isCompared }) {
+      return (
+        <article className="card overflow-hidden flex flex-col group">
+          <div className="relative aspect-[4/3] overflow-hidden bg-dark">
+            <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+            {product.used && <span className="absolute top-3 left-3 bg-amber-500/90 text-dark text-xs font-bold px-2 py-1 rounded-lg">POUŽITÉ</span>}
+            <span className="absolute top-3 right-3 bg-dark/80 text-neon text-xs font-medium px-2 py-1 rounded-lg border border-neon/30">DEMO</span>
+          </div>
+          <div className="p-5 flex flex-col flex-1">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h3 className="font-semibold text-lg leading-tight group-hover:text-neon transition-colors">{product.name}</h3>
+              <div className="flex items-center gap-1 text-amber-400 shrink-0">
+                <Icon name="star" size={14} />
+                <span className="text-sm font-medium">{product.rating}</span>
+              </div>
+            </div>
+            <ul className="space-y-1.5 text-sm text-gray mb-4">
+              <li className="flex items-center gap-2"><span className="text-neon"><Icon name="cpu" size={14} /></span> {product.cpu}</li>
+              <li className="flex items-center gap-2"><span className="text-neon"><Icon name="monitor" size={14} /></span> {product.gpu}</li>
+              <li className="flex items-center gap-2"><span className="text-neon"><Icon name="ram" size={14} /></span> {product.ram}</li>
+              <li className="flex items-center gap-2"><span className="text-neon"><Icon name="hdd" size={14} /></span> {product.ssd}</li>
+            </ul>
+            <div className="mt-auto">
+              <p className="text-2xl font-bold mb-4">{product.price.toLocaleString('cs-CZ')} <span className="text-base font-normal text-gray">Kč</span></p>
+              <div className="flex gap-2">
+                <button onClick={() => onOpen(product.id)} className="btn-primary flex-1 text-center text-sm py-2.5 justify-center">Detail</button>
+                {onCompareToggle && (
+                  <button onClick={() => onCompareToggle(product.id)} className={`px-3 py-2.5 rounded-xl text-sm font-medium border transition-all ${isCompared ? 'bg-neon/20 border-neon text-neon' : 'border-white/20 text-gray hover:border-neon hover:text-neon'}`}>
+                    {isCompared ? '✓' : '+'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </article>
+      );
+    }
+
+    function AdBanner({ size }) {
+      return (
+        <div className={`border border-dashed border-white/10 rounded-xl bg-dark-blue/30 flex items-center justify-center text-gray text-sm ${size === 'sidebar' ? 'h-48' : 'h-24'}`}>
+          <div className="text-center px-4">
+            <p className="font-medium">Reklamní plocha</p>
+            <p className="text-xs mt-1 opacity-70">Připraveno pro partnerské nabídky</p>
+          </div>
+        </div>
+      );
+    }
+
+    // ========== PAGES ==========
+    function Home({ navigate }) {
+      const featured = products.filter(p => !p.used).slice(0, 3);
+      return (
+        <div>
+          <section className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue/10 via-transparent to-neon/5 pointer-events-none" />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 bg-neon/10 border border-neon/30 text-neon text-sm font-medium px-3 py-1.5 rounded-full mb-6">
+                    <Icon name="sparkles" size={14} /> Chytrý výběr herního PC
+                  </div>
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
+                    NAJDI SVŮJ IDEÁLNÍ{' '}
+                    <span className="bg-gradient-to-r from-blue to-neon bg-clip-text text-transparent" style={{WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>HERNÍ POČÍTAČ</span>
+                  </h1>
+                  <p className="text-lg text-gray mb-8 max-w-lg leading-relaxed">
+                    Nevíš, jaký počítač koupit? Vyber si rozpočet a oblíbené hry. My ti pomůžeme najít správný herní počítač.
+                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    <button onClick={() => navigate('wizard')} className="btn-primary">VYBRAT POČÍTAČ <Icon name="arrowRight" size={18} /></button>
+                    <button onClick={() => navigate('catalog')} className="btn-secondary">PROHLÉDNOUT POČÍTAČE</button>
+                  </div>
+                </div>
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-blue/20 to-neon/20 rounded-3xl blur-2xl opacity-60 animate-pulse-slow" />
+                  <img src="https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=800&h=600&fit=crop" alt="Herní PC" className="relative rounded-2xl shadow-neon-lg border border-white/10 w-full object-cover aspect-[4/3] animate-float" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+            <div className="grid sm:grid-cols-3 gap-6">
+              {[
+                { icon: 'gamepad', title: 'Podle her', text: 'Vyber si oblíbené hry a my doporučíme vhodný výkon.' },
+                { icon: 'zap', title: 'Podle rozpočtu', text: 'Od 5 000 Kč po high-end – najdeme nejlepší poměr cena/výkon.' },
+                { icon: 'cpu', title: 'Jednoduše', text: 'I když počítačům nerozumíš, průvodce tě provede krok za krokem.' },
+              ].map(f => (
+                <div key={f.title} className="card p-6">
+                  <div className="w-12 h-12 rounded-xl bg-neon/10 flex items-center justify-center mb-4 text-neon"><Icon name={f.icon} size={24} /></div>
+                  <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
+                  <p className="text-gray text-sm leading-relaxed">{f.text}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4"><AdBanner /></div>
+
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <h2 className="section-title mb-2">Doporučené počítače</h2>
+                <p className="text-gray">Ukázkové sestavy – demonstrační produkty</p>
+              </div>
+              <button onClick={() => navigate('catalog')} className="hidden sm:inline-flex items-center gap-1 text-neon hover:underline text-sm font-medium">Zobrazit vše <Icon name="arrowRight" size={16} /></button>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featured.map(p => <ProductCard key={p.id} product={p} onOpen={(id) => navigate('product', id)} />)}
+            </div>
+          </section>
+
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+            <div className="card p-8 md:p-12 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue/10 to-neon/10 pointer-events-none" />
+              <h2 className="text-2xl md:text-3xl font-bold mb-4 relative">Nevíš, kde začít?</h2>
+              <p className="text-gray mb-6 max-w-xl mx-auto relative">Použij chytrého průvodce nebo napiš AI poradci.</p>
+              <div className="flex flex-wrap justify-center gap-4 relative">
+                <button onClick={() => navigate('wizard')} className="btn-primary">Spustit průvodce</button>
+                <button onClick={() => navigate('ai')} className="btn-secondary">Zkusit AI poradce</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      );
+    }
+
+    function Catalog({ type, navigate }) {
+      const [priceRange, setPriceRange] = useState('all');
+      const [cpuFilter, setCpuFilter] = useState('all');
+      const [gpuFilter, setGpuFilter] = useState('all');
+      const [sort, setSort] = useState('price-asc');
+      const [compareIds, setCompareIds] = useState([]);
+      const [mobileFilters, setMobileFilters] = useState(false);
+
+      const filtered = useMemo(() => {
+        let list = products.filter(p => {
+          if (type === 'desktop' && p.type !== 'desktop') return false;
+          if (type === 'laptop' && p.type !== 'laptop') return false;
+          if (priceRange === 'do-10000' && p.price > 10000) return false;
+          if (priceRange === '10000-20000' && (p.price < 10000 || p.price > 20000)) return false;
+          if (priceRange === '20000-30000' && (p.price < 20000 || p.price > 30000)) return false;
+          if (priceRange === 'nad-30000' && p.price <= 30000) return false;
+          if (cpuFilter === 'amd' && !p.cpu.toLowerCase().includes('amd') && !p.cpu.toLowerCase().includes('ryzen')) return false;
+          if (cpuFilter === 'intel' && !p.cpu.toLowerCase().includes('intel')) return false;
+          if (gpuFilter === 'nvidia' && !p.gpu.toLowerCase().includes('nvidia') && !p.gpu.toLowerCase().includes('rtx') && !p.gpu.toLowerCase().includes('gtx')) return false;
+          if (gpuFilter === 'amd' && !p.gpu.toLowerCase().includes('radeon') && !p.gpu.toLowerCase().includes('rx ')) return false;
+          return true;
+        });
+        list = [...list].sort((a, b) => {
+          if (sort === 'price-asc') return a.price - b.price;
+          if (sort === 'price-desc') return b.price - a.price;
+          if (sort === 'rating') return b.rating - a.rating;
+          return 0;
+        });
+        return list;
+      }, [type, priceRange, cpuFilter, gpuFilter, sort]);
+
+      const toggleCompare = (id) => {
+        setCompareIds(prev => {
+          if (prev.includes(id)) return prev.filter(x => x !== id);
+          if (prev.length >= 2) return [prev[1], id];
+          return [...prev, id];
+        });
+      };
+
+      const title = type === 'desktop' ? 'Herní PC' : type === 'laptop' ? 'Herní notebooky' : 'Katalog počítačů';
+
+      const Filters = () => (
+        <div className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium mb-2">Cena</label>
+            <select value={priceRange} onChange={e => setPriceRange(e.target.value)} className="input-field">
+              <option value="all">Všechny ceny</option>
+              <option value="do-10000">Do 10 000 Kč</option>
+              <option value="10000-20000">10 000 – 20 000 Kč</option>
+              <option value="20000-30000">20 000 – 30 000 Kč</option>
+              <option value="nad-30000">Nad 30 000 Kč</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Procesor</label>
+            <select value={cpuFilter} onChange={e => setCpuFilter(e.target.value)} className="input-field">
+              <option value="all">Všechny</option>
+              <option value="amd">AMD Ryzen</option>
+              <option value="intel">Intel</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Grafická karta</label>
+            <select value={gpuFilter} onChange={e => setGpuFilter(e.target.value)} className="input-field">
+              <option value="all">Všechny</option>
+              <option value="nvidia">NVIDIA</option>
+              <option value="amd">AMD Radeon</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Řazení</label>
+            <select value={sort} onChange={e => setSort(e.target.value)} className="input-field">
+              <option value="price-asc">Cena: od nejnižší</option>
+              <option value="price-desc">Cena: od nejvyšší</option>
+              <option value="rating">Hodnocení</option>
+            </select>
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="section-title mb-1">{title}</h1>
+              <p className="text-gray text-sm">{filtered.length} produktů · demonstrační nabídka</p>
+            </div>
+            <button className="lg:hidden btn-secondary text-sm py-2" onClick={() => setMobileFilters(true)}>
+              <Icon name="sliders" size={16} /> Filtry
+            </button>
+          </div>
+
+          {compareIds.length > 0 && (
+            <div className="mb-6 p-4 rounded-xl bg-neon/10 border border-neon/30 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-sm">Vybráno k porovnání: <strong>{compareIds.length}/2</strong></span>
+              <div className="flex gap-2">
+                {compareIds.length === 2 && (
+                  <button onClick={() => navigate('compare', null, { a: compareIds[0], b: compareIds[1] })} className="btn-primary text-sm py-2">Porovnat</button>
+                )}
+                <button onClick={() => setCompareIds([])} className="btn-secondary text-sm py-2">Zrušit</button>
+              </div>
+            </div>
+          )}
+
+          <div className="grid lg:grid-cols-4 gap-8">
+            <aside className="hidden lg:block">
+              <div className="card p-5 sticky top-24">
+                <h2 className="font-semibold mb-4">Filtry</h2>
+                <Filters />
+              </div>
+            </aside>
+            <div className="lg:col-span-3">
+              {filtered.length === 0 ? (
+                <div className="card p-12 text-center text-gray">Žádné produkty neodpovídají filtrům.</div>
+              ) : (
+                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filtered.map(p => (
+                    <ProductCard key={p.id} product={p} onOpen={id => navigate('product', id)} onCompareToggle={toggleCompare} isCompared={compareIds.includes(p.id)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {mobileFilters && (
+            <div className="fixed inset-0 z-50 lg:hidden">
+              <div className="absolute inset-0 bg-black/60" onClick={() => setMobileFilters(false)} />
+              <div className="absolute right-0 top-0 bottom-0 w-80 max-w-full bg-dark-blue p-6 overflow-y-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-semibold text-lg">Filtry</h2>
+                  <button onClick={() => setMobileFilters(false)} className="p-2 text-gray hover:text-white"><Icon name="x" size={20} /></button>
+                </div>
+                <Filters />
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function ProductDetail({ id, navigate }) {
+      const product = products.find(p => p.id === Number(id));
+      if (!product) {
+        return (
+          <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+            <h1 className="text-2xl font-bold mb-4">Produkt nenalezen</h1>
+            <button onClick={() => navigate('catalog')} className="btn-primary">Zpět do katalogu</button>
+          </div>
+        );
+      }
+      const fpsEntries = Object.entries(product.fps || {});
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <button onClick={() => navigate('catalog')} className="inline-flex items-center gap-2 text-gray hover:text-neon text-sm mb-8 transition-colors">
+            <Icon name="arrowLeft" size={16} /> Zpět do katalogu
+          </button>
+          <div className="grid lg:grid-cols-2 gap-10">
+            <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-dark-blue">
+              <img src={product.image} alt={product.name} className="w-full aspect-[4/3] object-cover" />
+              <span className="absolute top-4 right-4 bg-dark/80 text-neon text-xs font-medium px-3 py-1.5 rounded-lg border border-neon/30">DEMO PRODUKT</span>
+              {product.used && <span className="absolute top-4 left-4 bg-amber-500 text-dark text-xs font-bold px-3 py-1.5 rounded-lg">POUŽITÉ</span>}
+            </div>
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-1 text-amber-400"><Icon name="star" size={18} /><span className="font-semibold">{product.rating}</span></div>
+                <span className="text-gray text-sm">· demonstrační produkt</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-4">{product.name}</h1>
+              <p className="text-gray mb-6 leading-relaxed">{product.description}</p>
+              <p className="text-4xl font-bold mb-6">{product.price.toLocaleString('cs-CZ')} <span className="text-xl font-normal text-gray">Kč</span></p>
+              <div className="grid grid-cols-2 gap-3 mb-8">
+                {[
+                  { icon: 'cpu', label: 'Procesor', value: product.cpu },
+                  { icon: 'monitor', label: 'Grafika', value: product.gpu },
+                  { icon: 'ram', label: 'RAM', value: product.ram },
+                  { icon: 'hdd', label: 'SSD', value: product.ssd },
+                ].map(s => (
+                  <div key={s.label} className="card p-4">
+                    <div className="flex items-center gap-2 text-neon mb-1"><Icon name={s.icon} size={16} /><span className="text-xs text-gray">{s.label}</span></div>
+                    <p className="font-medium text-sm">{s.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-3 mb-4">
+                <button className="btn-primary" onClick={() => alert('Affiliate odkaz – připraveno pro propojení s e-shopem.')}>Zobrazit v obchodě <Icon name="external" size={16} /></button>
+                <button onClick={() => navigate('compare', null, { a: product.id })} className="btn-secondary">Porovnat</button>
+              </div>
+              <p className="text-xs text-gray">Tlačítko je připraveno pro affiliate odkaz. Aktuálně demonstrační.</p>
+            </div>
+          </div>
+          {fpsEntries.length > 0 && (
+            <section className="mt-14">
+              <h2 className="text-2xl font-bold mb-6">Orientační FPS (1080p)</h2>
+              <div className="card overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead><tr className="border-b border-white/10 text-left"><th className="px-5 py-3 text-gray font-medium">Hra</th><th className="px-5 py-3 text-gray font-medium">FPS</th></tr></thead>
+                  <tbody>
+                    {fpsEntries.map(([game, fps]) => (
+                      <tr key={game} className="border-b border-white/5 hover:bg-white/5">
+                        <td className="px-5 py-3 font-medium">{game}</td>
+                        <td className="px-5 py-3"><span className="text-neon font-semibold">{fps}</span> FPS</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-gray mt-3">Hodnoty jsou orientační ukázky pro demonstrační účely.</p>
+            </section>
+          )}
+          <div className="mt-10"><AdBanner /></div>
+        </div>
+      );
+    }
+
+    function Wizard({ navigate }) {
+      const BUDGETS = [
+        { id: 'do-5000', label: 'Do 5 000 Kč', min: 0, max: 5000 },
+        { id: '5000-10000', label: '5 000–10 000 Kč', min: 5000, max: 10000 },
+        { id: '10000-15000', label: '10 000–15 000 Kč', min: 10000, max: 15000 },
+        { id: '15000-20000', label: '15 000–20 000 Kč', min: 15000, max: 20000 },
+        { id: '20000-30000', label: '20 000–30 000 Kč', min: 20000, max: 30000 },
+        { id: 'nad-30000', label: 'Nad 30 000 Kč', min: 30000, max: 999999 },
+      ];
+      const TYPES = [
+        { id: 'desktop', label: 'Stolní počítač' },
+        { id: 'laptop', label: 'Herní notebook' },
+        { id: 'used', label: 'Použitý počítač' },
+      ];
+      const GAMES = ['Warzone', 'CS2', 'PUBG', 'Fortnite', 'GTA V', 'Minecraft', 'Kingdom Come: Deliverance II'];
+      const PERFORMANCE = [
+        { id: 'nizky', label: 'Nízký', desc: 'Lehké hry, nižší nastavení' },
+        { id: 'stredni', label: 'Střední', desc: 'Plynulé 1080p' },
+        { id: 'vysoky', label: 'Vysoký', desc: 'Vysoké detaily, 1440p' },
+        { id: 'maximalni', label: 'Maximální', desc: '4K / max nastavení' },
+      ];
+
+      const [step, setStep] = useState(1);
+      const [budget, setBudget] = useState(null);
+      const [deviceType, setDeviceType] = useState(null);
+      const [games, setGames] = useState([]);
+      const [performance, setPerformance] = useState(null);
+      const [results, setResults] = useState(null);
+
+      const toggleGame = g => setGames(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
+      const canNext = () => {
+        if (step === 1) return !!budget;
+        if (step === 2) return !!deviceType;
+        if (step === 3) return games.length > 0;
+        if (step === 4) return !!performance;
+        return false;
+      };
+
+      const finish = () => {
+        const b = BUDGETS.find(x => x.id === budget);
+        let list = products.filter(p => {
+          if (deviceType === 'desktop' && (p.type !== 'desktop' || p.used)) return false;
+          if (deviceType === 'laptop' && p.type !== 'laptop') return false;
+          if (deviceType === 'used' && !p.used) return false;
+          if (b && (p.price < b.min || p.price > b.max)) return false;
+          if (performance) {
+            const order = ['nizky', 'stredni', 'vysoky', 'maximalni'];
+            if (Math.abs(order.indexOf(p.performance) - order.indexOf(performance)) > 1) return false;
+          }
+          return true;
+        });
+        list = list.map(p => {
+          let score = 0;
+          games.forEach(g => { if (p.fps && p.fps[g]) score += p.fps[g]; });
+          return { ...p, score };
+        }).sort((a, b) => b.score - a.score || a.price - b.price).slice(0, 6);
+        setResults(list);
+        setStep(5);
+      };
+
+      const Option = ({ selected, onClick, children }) => (
+        <button type="button" onClick={onClick} className={`w-full text-left p-4 rounded-xl border transition-all ${selected ? 'border-neon bg-neon/10 shadow-neon' : 'border-white/10 bg-dark-blue/50 hover:border-white/30'}`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? 'border-neon bg-neon' : 'border-gray'}`}>
+              {selected && <Icon name="check" size={12} className="text-dark" />}
+            </div>
+            <div className="flex-1">{children}</div>
+          </div>
+        </button>
+      );
+
+      return (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+          <h1 className="section-title mb-2 text-center">Chytrý výběr počítače</h1>
+          <p className="text-gray text-center mb-10">Odpověz na pár otázek a my ti doporučíme sestavy</p>
+          {step < 5 && (
+            <div className="flex gap-2 mb-10">
+              {[1, 2, 3, 4].map(s => <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${s <= step ? 'bg-neon' : 'bg-white/10'}`} />)}
+            </div>
+          )}
+          {step === 1 && (
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold mb-4">Jaký máš rozpočet?</h2>
+              {BUDGETS.map(b => <Option key={b.id} selected={budget === b.id} onClick={() => setBudget(b.id)}><span className="font-medium">{b.label}</span></Option>)}
+            </div>
+          )}
+          {step === 2 && (
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold mb-4">Jaký typ zařízení hledáš?</h2>
+              {TYPES.map(t => <Option key={t.id} selected={deviceType === t.id} onClick={() => setDeviceType(t.id)}><span className="font-medium">{t.label}</span></Option>)}
+            </div>
+          )}
+          {step === 3 && (
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold mb-4">Které hry hraješ?</h2>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {GAMES.map(g => <Option key={g} selected={games.includes(g)} onClick={() => toggleGame(g)}><span className="font-medium">{g}</span></Option>)}
+              </div>
+            </div>
+          )}
+          {step === 4 && (
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold mb-4">Jaký výkon očekáváš?</h2>
+              {PERFORMANCE.map(p => (
+                <Option key={p.id} selected={performance === p.id} onClick={() => setPerformance(p.id)}>
+                  <span className="font-medium">{p.label}</span>
+                  <span className="block text-sm text-gray mt-0.5">{p.desc}</span>
+                </Option>
+              ))}
+            </div>
+          )}
+          {step === 5 && results && (
+            <div>
+              <h2 className="text-xl font-semibold mb-2">Doporučené počítače pro tebe</h2>
+              <p className="text-gray text-sm mb-6">Na základě tvých odpovědí – demonstrační sestavy.</p>
+              {results.length === 0 ? (
+                <div className="card p-8 text-center text-gray">
+                  Nenašli jsme přesnou shodu. Zkus upravit rozpočet nebo výkon.
+                  <div className="mt-4"><button onClick={() => setStep(1)} className="btn-secondary">Spustit znovu</button></div>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {results.map(p => <ProductCard key={p.id} product={p} onOpen={id => navigate('product', id)} />)}
+                </div>
+              )}
+              <div className="mt-8 text-center">
+                <button onClick={() => { setStep(1); setBudget(null); setDeviceType(null); setGames([]); setPerformance(null); setResults(null); }} className="btn-secondary">Spustit průvodce znovu</button>
+              </div>
+            </div>
+          )}
+          {step < 5 && (
+            <div className="flex justify-between mt-10">
+              <button onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1} className="btn-secondary disabled:opacity-40"><Icon name="arrowLeft" size={18} /> Zpět</button>
+              {step < 4 ? (
+                <button onClick={() => canNext() && setStep(s => s + 1)} disabled={!canNext()} className="btn-primary disabled:opacity-40">Další <Icon name="arrowRight" size={18} /></button>
+              ) : (
+                <button onClick={() => canNext() && finish()} disabled={!canNext()} className="btn-primary disabled:opacity-40">Zobrazit doporučení</button>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function Compare({ params, navigate }) {
+      const [idA, setIdA] = useState(params?.a ? String(params.a) : '');
+      const [idB, setIdB] = useState(params?.b ? String(params.b) : '');
+      const productA = idA ? products.find(p => p.id === Number(idA)) : null;
+      const productB = idB ? products.find(p => p.id === Number(idB)) : null;
+      const rows = [
+        { label: 'Název', key: 'name' },
+        { label: 'Cena', key: 'price', format: v => `${Number(v).toLocaleString('cs-CZ')} Kč` },
+        { label: 'Procesor', key: 'cpu' },
+        { label: 'Grafická karta', key: 'gpu' },
+        { label: 'RAM', key: 'ram' },
+        { label: 'SSD', key: 'ssd' },
+        { label: 'Hodnocení', key: 'rating', format: v => `${v} / 5` },
+        { label: 'Typ', key: 'type', format: v => v === 'laptop' ? 'Notebook' : 'Stolní PC' },
+      ];
+      const allGames = useMemo(() => {
+        const set = new Set();
+        if (productA?.fps) Object.keys(productA.fps).forEach(g => set.add(g));
+        if (productB?.fps) Object.keys(productB.fps).forEach(g => set.add(g));
+        return Array.from(set);
+      }, [productA, productB]);
+
+      return (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+          <h1 className="section-title mb-2">Porovnání počítačů</h1>
+          <p className="text-gray mb-8">Vyber dva produkty a porovnej specifikace i herní výkon.</p>
+          <div className="grid sm:grid-cols-2 gap-4 mb-10">
+            <div>
+              <label className="block text-sm font-medium mb-2">Počítač A</label>
+              <select value={idA} onChange={e => setIdA(e.target.value)} className="input-field">
+                <option value="">— Vyber produkt —</option>
+                {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.price.toLocaleString('cs-CZ')} Kč)</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Počítač B</label>
+              <select value={idB} onChange={e => setIdB(e.target.value)} className="input-field">
+                <option value="">— Vyber produkt —</option>
+                {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.price.toLocaleString('cs-CZ')} Kč)</option>)}
+              </select>
+            </div>
+          </div>
+          {productA && productB ? (
+            <div className="card overflow-hidden">
+              <div className="grid grid-cols-3 border-b border-white/10">
+                <div className="p-4 text-gray text-sm font-medium">Parametr</div>
+                <div className="p-4 text-center border-l border-white/10">
+                  <img src={productA.image} alt="" className="w-full h-28 object-cover rounded-lg mb-2" />
+                  <p className="font-semibold text-sm">{productA.name}</p>
+                </div>
+                <div className="p-4 text-center border-l border-white/10">
+                  <img src={productB.image} alt="" className="w-full h-28 object-cover rounded-lg mb-2" />
+                  <p className="font-semibold text-sm">{productB.name}</p>
+                </div>
+              </div>
+              {rows.map(row => (
+                <div key={row.key} className="grid grid-cols-3 border-b border-white/5 hover:bg-white/[0.02]">
+                  <div className="p-4 text-sm text-gray">{row.label}</div>
+                  <div className="p-4 text-sm text-center border-l border-white/5 font-medium">{row.format ? row.format(productA[row.key]) : productA[row.key]}</div>
+                  <div className="p-4 text-sm text-center border-l border-white/5 font-medium">{row.format ? row.format(productB[row.key]) : productB[row.key]}</div>
+                </div>
+              ))}
+              {allGames.length > 0 && (
+                <>
+                  <div className="grid grid-cols-3 bg-neon/5 border-b border-white/10">
+                    <div className="p-4 text-sm font-semibold text-neon col-span-3 flex items-center gap-2"><Icon name="compare" size={16} /> Herní výkon (orientační FPS)</div>
+                  </div>
+                  {allGames.map(game => (
+                    <div key={game} className="grid grid-cols-3 border-b border-white/5 hover:bg-white/[0.02]">
+                      <div className="p-4 text-sm text-gray">{game}</div>
+                      <div className="p-4 text-sm text-center border-l border-white/5">{productA.fps?.[game] ? <span className="text-neon font-semibold">{productA.fps[game]} FPS</span> : '—'}</div>
+                      <div className="p-4 text-sm text-center border-l border-white/5">{productB.fps?.[game] ? <span className="text-neon font-semibold">{productB.fps[game]} FPS</span> : '—'}</div>
+                    </div>
+                  ))}
+                </>
+              )}
+              <div className="grid grid-cols-3">
+                <div className="p-4" />
+                <div className="p-4 border-l border-white/5 text-center"><button onClick={() => navigate('product', productA.id)} className="btn-primary text-sm py-2">Detail A</button></div>
+                <div className="p-4 border-l border-white/5 text-center"><button onClick={() => navigate('product', productB.id)} className="btn-primary text-sm py-2">Detail B</button></div>
+              </div>
+            </div>
+          ) : (
+            <div className="card p-12 text-center text-gray">
+              <div className="mx-auto mb-4 text-neon opacity-50 flex justify-center"><Icon name="compare" size={40} /></div>
+              <p>Vyber dva počítače výše pro zobrazení porovnání.</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function Poradna({ navigate }) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <h1 className="section-title mb-2">Herní poradna</h1>
+          <p className="text-gray mb-10 max-w-2xl">Užitečné články pro začátečníky i pokročilé.</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {articles.map(a => (
+              <button key={a.slug} onClick={() => navigate('article', a.slug)} className="card p-6 text-left group hover:border-neon/40 transition-all">
+                <div className="flex items-center gap-2 text-xs text-neon mb-3">
+                  <Icon name="book" size={14} /><span>{a.category}</span>
+                  <span className="text-gray">·</span>
+                  <Icon name="clock" size={14} className="text-gray" /><span className="text-gray">{a.readTime}</span>
+                </div>
+                <h2 className="font-semibold text-lg mb-2 group-hover:text-neon transition-colors">{a.title}</h2>
+                <p className="text-sm text-gray leading-relaxed">{a.excerpt}</p>
+              </button>
+            ))}
+          </div>
+          <AdBanner />
+        </div>
+      );
+    }
+
+    function ArticleDetail({ slug, navigate }) {
+      const article = articles.find(a => a.slug === slug);
+      if (!article) {
+        return (
+          <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+            <h1 className="text-2xl font-bold mb-4">Článek nenalezen</h1>
+            <button onClick={() => navigate('poradna')} className="btn-primary">Zpět do poradny</button>
+          </div>
+        );
+      }
+      return (
+        <article className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+          <button onClick={() => navigate('poradna')} className="inline-flex items-center gap-2 text-gray hover:text-neon text-sm mb-8 transition-colors">
+            <Icon name="arrowLeft" size={16} /> Zpět do poradny
+          </button>
+          <div className="flex items-center gap-2 text-sm text-neon mb-4">
+            <Icon name="book" size={16} /><span>{article.category}</span>
+            <span className="text-gray">·</span>
+            <Icon name="clock" size={16} className="text-gray" /><span className="text-gray">{article.readTime}</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">{article.title}</h1>
+          <div className="space-y-4 text-gray leading-relaxed [&_h3]:text-white [&_h3]:font-semibold [&_h3]:text-xl [&_h3]:mt-8 [&_h3]:mb-3 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_strong]:text-white"
+            dangerouslySetInnerHTML={{ __html: article.content }} />
+          <div className="mt-12 pt-8 border-t border-white/10">
+            <p className="text-sm text-gray mb-4">Chceš doporučit konkrétní sestavu?</p>
+            <div className="flex flex-wrap gap-3">
+              <button onClick={() => navigate('wizard')} className="btn-primary">Spustit průvodce</button>
+              <button onClick={() => navigate('ai')} className="btn-secondary">AI poradce</button>
+            </div>
+          </div>
+        </article>
+      );
+    }
+
+    function AiAdvisor({ navigate }) {
+      const demoRecommend = (message) => {
+        const text = message.toLowerCase();
+        let list = [...products];
+        const budgetMatch = text.match(/(\d{4,6})\s*(kč|kc|czk)?/);
+        if (budgetMatch) list = list.filter(p => p.price <= parseInt(budgetMatch[1], 10) * 1.1);
+        else if (text.includes('levn') || text.includes('budget') || text.includes('do 10')) list = list.filter(p => p.price <= 15000);
+        else if (text.includes('drah') || text.includes('high') || text.includes('nejlep')) list = list.filter(p => p.price >= 25000);
+        if (text.includes('notebook') || text.includes('laptop')) list = list.filter(p => p.type === 'laptop');
+        else if (text.includes('stoln') || text.includes('desktop') || text.includes(' pc')) list = list.filter(p => p.type === 'desktop');
+        if (text.includes('použit') || text.includes('bazar')) list = list.filter(p => p.used);
+        const gameKeywords = { warzone: 'Warzone', cs2: 'CS2', 'counter-strike': 'CS2', pubg: 'PUBG', fortnite: 'Fortnite', gta: 'GTA V', minecraft: 'Minecraft', 'kingdom come': 'Kingdom Come: Deliverance II', kcd: 'Kingdom Come: Deliverance II' };
+        let preferredGame = null;
+        for (const [kw, game] of Object.entries(gameKeywords)) { if (text.includes(kw)) { preferredGame = game; break; } }
+        if (preferredGame) list = list.map(p => ({ ...p, score: p.fps?.[preferredGame] || 0 })).sort((a, b) => b.score - a.score);
+        else list.sort((a, b) => a.price - b.price);
+        const top = list.slice(0, 3);
+        if (top.length === 0) return { reply: 'Podle zadaných kritérií jsem nenašel vhodnou sestavu. Zkus upravit rozpočet nebo typ zařízení.', products: [] };
+        return { reply: `Na základě tvé zprávy doporučuji: ${top.map(p => p.name).join(', ')}. (Ukázkový doporučovací systém, ne skutečná AI.)`, products: top };
+      };
+
+      const [input, setInput] = useState('');
+      const [messages, setMessages] = useState([{ role: 'bot', text: 'Ahoj! Jsem demonstrační herní poradce. Napiš např.: „Mám rozpočet 15 000 Kč a chci hrát Warzone.“' }]);
+      const [suggestions, setSuggestions] = useState([]);
+
+      const send = () => {
+        const text = input.trim();
+        if (!text) return;
+        setMessages(m => [...m, { role: 'user', text }]);
+        setInput('');
+        const result = demoRecommend(text);
+        setTimeout(() => {
+          setMessages(m => [...m, { role: 'bot', text: result.reply }]);
+          setSuggestions(result.products);
+        }, 400);
+      };
+
+      return (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+          <div className="text-center mb-8">
+            <h1 className="section-title mb-2">AI Herní poradce</h1>
+            <p className="text-amber-400/90 text-sm bg-amber-400/10 border border-amber-400/30 rounded-xl px-4 py-2 inline-block">Demonstrační systém – není připojen skutečný AI model</p>
+          </div>
+          <div className="card flex flex-col h-[480px]">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${msg.role === 'bot' ? 'bg-neon/20 text-neon' : 'bg-blue/20 text-blue'}`}>
+                    <Icon name={msg.role === 'bot' ? 'bot' : 'user'} size={16} />
+                  </div>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === 'bot' ? 'bg-dark-blue border border-white/5' : 'bg-blue/20 border border-blue/30'}`}>{msg.text}</div>
+                </div>
+              ))}
+            </div>
+            <div className="p-4 border-t border-white/5">
+              <div className="flex gap-2">
+                <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder="Napiš svůj rozpočet a hry…" className="input-field flex-1" />
+                <button onClick={send} className="btn-primary px-4" aria-label="Odeslat"><Icon name="send" size={18} /></button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {['Mám rozpočet 15 000 Kč a chci hrát Warzone', 'Hledám herní notebook do 25 000 Kč', 'Chci hrát CS2 na vysoké FPS'].map(s => (
+                  <button key={s} onClick={() => setInput(s)} className="text-xs px-3 py-1.5 rounded-full border border-white/10 text-gray hover:border-neon hover:text-neon transition-colors">{s}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {suggestions.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-xl font-semibold mb-4">Doporučené sestavy</h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {suggestions.map(p => <ProductCard key={p.id} product={p} onOpen={id => navigate('product', id)} />)}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function About({ navigate }) {
+      return (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+          <h1 className="section-title mb-6">O nás</h1>
+          <div className="space-y-6 text-gray leading-relaxed">
+            <p className="text-lg text-white"><strong>HERNÍ PORADCE</strong> je česká webová platforma, která pomáhá lidem vybrat ideální herní počítač nebo notebook – i když počítačům vůbec nerozumí.</p>
+            <p>Stačí zadat rozpočet, oblíbené hry a požadovaný výkon. My doporučíme sestavy, které dávají smysl.</p>
+            <div className="grid sm:grid-cols-3 gap-4 my-10">
+              {[
+                { icon: 'target', title: 'Jednoduchost', text: 'Průvodce krok za krokem bez technického žargonu.' },
+                { icon: 'users', title: 'Pro každého', text: 'Od prvního PC po high-end sestavu.' },
+                { icon: 'trend', title: 'Růst', text: 'Připraveno na affiliate, reklamy a další rozvoj.' },
+              ].map(f => (
+                <div key={f.title} className="card p-5 text-center">
+                  <div className="mx-auto text-neon mb-3 flex justify-center"><Icon name={f.icon} size={28} /></div>
+                  <h3 className="font-semibold text-white mb-1">{f.title}</h3>
+                  <p className="text-sm">{f.text}</p>
+                </div>
+              ))}
+            </div>
+            <h2 className="text-xl font-semibold text-white">Monetizace</h2>
+            <p>Web je připravený na affiliate odkazy do e-shopů, reklamní plochy a doporučené partnerské nabídky. Všechny produkty jsou demonstrační.</p>
+            <div className="card p-6 mt-8 bg-gradient-to-r from-blue/10 to-neon/10 border-neon/20">
+              <p className="text-white font-medium mb-3">Chceš hned vybrat počítač?</p>
+              <div className="flex flex-wrap gap-3">
+                <button onClick={() => navigate('wizard')} className="btn-primary">Spustit průvodce</button>
+                <button onClick={() => navigate('catalog')} className="btn-secondary">Prohlédnout katalog</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ========== APP ==========
+    function App() {
+      const [page, setPage] = useState('home');
+      const [pageId, setPageId] = useState(null);
+      const [pageParams, setPageParams] = useState(null);
+      const [menuOpen, setMenuOpen] = useState(false);
+
+      const navigate = (p, id = null, params = null) => {
+        setPage(p);
+        setPageId(id);
+        setPageParams(params);
+        setMenuOpen(false);
+        window.scrollTo(0, 0);
+      };
+
+      const navClick = (id) => {
+        if (id === 'desktop') navigate('desktop');
+        else if (id === 'laptop') navigate('laptop');
+        else navigate(id === 'home' ? 'home' : id);
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          <header className="sticky top-0 z-50 bg-dark/90 backdrop-blur-md border-b border-white/5">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
+              <div className="flex items-center justify-between h-16">
+                <button onClick={() => navigate('home')} className="flex items-center gap-2 group">
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue to-neon flex items-center justify-center shadow-neon">
+                    <Icon name="gamepad" size={20} className="text-dark" />
+                  </div>
+                  <span className="font-bold text-lg tracking-tight group-hover:text-neon transition-colors">HERNÍ PORADCE</span>
+                </button>
+                <nav className="hidden lg:flex items-center gap-1">
+                  {NAV.map(l => (
+                    <button key={l.id} onClick={() => navClick(l.id)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        (page === l.id || (l.id === 'desktop' && page === 'desktop') || (l.id === 'laptop' && page === 'laptop') || (l.id === 'home' && page === 'home'))
+                          ? 'text-neon bg-neon/10' : 'text-gray hover:text-white hover:bg-white/5'
+                      }`}>
+                      {l.label}
+                    </button>
+                  ))}
+                </nav>
+                <button className="lg:hidden p-2 text-gray hover:text-white" onClick={() => setMenuOpen(!menuOpen)}>
+                  <Icon name={menuOpen ? 'x' : 'menu'} size={24} />
+                </button>
+              </div>
+              {menuOpen && (
+                <nav className="lg:hidden pb-4 space-y-1">
+                  {NAV.map(l => (
+                    <button key={l.id} onClick={() => navClick(l.id)} className="block w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-gray hover:text-white hover:bg-white/5">
+                      {l.label}
+                    </button>
+                  ))}
+                </nav>
+              )}
+            </div>
+          </header>
+
+          <main className="flex-1">
+            {page === 'home' && <Home navigate={navigate} />}
+            {page === 'catalog' && <Catalog navigate={navigate} />}
+            {page === 'desktop' && <Catalog type="desktop" navigate={navigate} />}
+            {page === 'laptop' && <Catalog type="laptop" navigate={navigate} />}
+            {page === 'product' && <ProductDetail id={pageId} navigate={navigate} />}
+            {page === 'wizard' && <Wizard navigate={navigate} />}
+            {page === 'compare' && <Compare params={pageParams} navigate={navigate} />}
+            {page === 'poradna' && <Poradna navigate={navigate} />}
+            {page === 'article' && <ArticleDetail slug={pageId} navigate={navigate} />}
+            {page === 'ai' && <AiAdvisor navigate={navigate} />}
+            {page === 'about' && <About navigate={navigate} />}
+          </main>
+
+          <footer className="border-t border-white/5 bg-dark-blue/50 mt-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue to-neon flex items-center justify-center">
+                      <Icon name="gamepad" size={16} className="text-dark" />
+                    </div>
+                    <span className="font-bold">HERNÍ PORADCE</span>
+                  </div>
+                  <p className="text-gray text-sm leading-relaxed">Česká platforma pro výběr ideálního herního počítače podle rozpočtu a her.</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-3">Navigace</h4>
+                  <ul className="space-y-2 text-sm text-gray">
+                    <li><button onClick={() => navigate('desktop')} className="hover:text-neon">Herní PC</button></li>
+                    <li><button onClick={() => navigate('laptop')} className="hover:text-neon">Herní notebooky</button></li>
+                    <li><button onClick={() => navigate('wizard')} className="hover:text-neon">Chytrý výběr</button></li>
+                    <li><button onClick={() => navigate('compare')} className="hover:text-neon">Porovnání</button></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-3">Poradna</h4>
+                  <ul className="space-y-2 text-sm text-gray">
+                    <li><button onClick={() => navigate('poradna')} className="hover:text-neon">Články</button></li>
+                    <li><button onClick={() => navigate('ai')} className="hover:text-neon">AI Poradce</button></li>
+                    <li><button onClick={() => navigate('about')} className="hover:text-neon">O nás</button></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-3">Monetizace</h4>
+                  <p className="text-sm text-gray mb-3">Připraveno na affiliate a reklamy.</p>
+                  <div className="bg-dark/50 border border-dashed border-white/10 rounded-xl p-4 text-center text-xs text-gray">Reklamní plocha</div>
+                </div>
+              </div>
+              <div className="mt-10 pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray">
+                <p>© {new Date().getFullYear()} Herní Poradce. Demonstrační projekt.</p>
+                <p className="text-xs">Všechny produkty jsou ukázkové.</p>
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
